@@ -1,2 +1,2 @@
 # Velkro
-A vast and powerful toolkit to develop projects.
+Make software and games easy!
