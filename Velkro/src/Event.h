@@ -1,24 +1,18 @@
 #pragma once
 
-#include <iostream>
-
 namespace Velkro
-{		
-	enum EventType
-	{
-		Key,
-		Character,
-		MouseButton, MouseScroll, MouseMove, 
-		WindowResize, WindowMove, WindowMaximize, WindowFocus, WindowIconify
-	};
-
+{
 	class Event
 	{
 	public:
 		Event() = default;
-		~Event() = default;
+		virtual ~Event() = default;
 
-		virtual const EventType GetType() = 0;
+		template<typename Typename>
+		Typename* Get()
+		{
+			return dynamic_cast<Typename*>(this);
+		}
 	};
 
 	class KeyEvent : public Event
@@ -28,11 +22,10 @@ namespace Velkro
 		KeyEvent(int code, int scancode, int action, int mods);
 		~KeyEvent() = default;
 
-		const EventType GetType() override;
-		const int GetCode();
-		const int GetScancode();
-		const int GetAction();
-		const int GetMods();
+		int GetCode() const;
+		int GetScancode() const;
+		int GetAction() const;
+		int GetMods() const;
 
 	private:
 		int m_Code, m_Scancode, m_Action, m_Mods;
@@ -42,11 +35,10 @@ namespace Velkro
 	{
 	public:
 		CharacterEvent() = default;
-		CharacterEvent(uint32_t codepoint);
+		CharacterEvent(int codepoint);
 		~CharacterEvent() = default;
 
-		const EventType GetType() override;
-		const int GetCodepoint();
+		int GetCodepoint() const;
 
 	private:
 		int m_Codepoint;
@@ -59,15 +51,14 @@ namespace Velkro
 		MouseButtonEvent(int code, int action, int mods);
 		~MouseButtonEvent() = default;
 
-		const EventType GetType() override;
-		const int GetCode();
-		const int GetAction();
-		const int GetMods();
+		int GetCode() const;
+		int GetAction() const;
+		int GetMods() const;
 
 	private:
 		int m_Code, m_Action, m_Mods;
 	};
-	
+
 	class MouseScrollEvent : public Event
 	{
 	public:
@@ -75,9 +66,8 @@ namespace Velkro
 		MouseScrollEvent(double xOffset, double yOffset);
 		~MouseScrollEvent() = default;
 
-		const EventType GetType() override;
-		const double GetXOffset();
-		const double GetYOffset();
+		double GetXOffset() const;
+		double GetYOffset() const;
 
 	private:
 		double m_XOffset, m_YOffset;
@@ -90,9 +80,8 @@ namespace Velkro
 		MouseMoveEvent(double xpos, double ypos);
 		~MouseMoveEvent() = default;
 
-		const EventType GetType() override;
-		const double GetXPos();
-		const double GetYPos();
+		double GetXPos() const;
+		double GetYPos() const;
 
 	private:
 		double m_XPos, m_YPos;
@@ -105,9 +94,8 @@ namespace Velkro
 		WindowResizeEvent(int width, int height);
 		~WindowResizeEvent() = default;
 
-		const EventType GetType() override;
-		const int GetWidth();
-		const int GetHeight();
+		int GetWidth() const;
+		int GetHeight() const;
 
 	private:
 		int m_Width, m_Height;
@@ -120,9 +108,8 @@ namespace Velkro
 		WindowMoveEvent(int xPos, int yPos);
 		~WindowMoveEvent() = default;
 
-		const EventType GetType() override;
-		const int GetXPos();
-		const int GetYPos();
+		int GetXPos() const;
+		int GetYPos() const;
 
 	private:
 		int m_XPos, m_YPos;
@@ -135,8 +122,7 @@ namespace Velkro
 		WindowMaximizeEvent(int maximized);
 		~WindowMaximizeEvent() = default;
 
-		const EventType GetType() override;
-		const int GetMaximized();
+		int GetMaximized() const;
 
 	private:
 		int m_Maximized;
@@ -149,8 +135,7 @@ namespace Velkro
 		WindowFocusEvent(int focused);
 		~WindowFocusEvent() = default;
 
-		inline const EventType GetType() override;
-		inline const int GetFocused();
+		int GetFocused() const;
 
 	private:
 		int m_Focused;
@@ -163,8 +148,7 @@ namespace Velkro
 		WindowIconifyEvent(int iconified);
 		~WindowIconifyEvent() = default;
 
-		const EventType GetType() override;
-		const int GetFocused();
+		int GetFocused() const;
 
 	private:
 		int m_Iconified;

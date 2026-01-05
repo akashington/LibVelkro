@@ -7,37 +7,29 @@ namespace Velkro
 	{
 	}
 
-	const EventType KeyEvent::GetType()
-	{		
-		return Key;
-	}
-	const int KeyEvent::GetCode()
+	int KeyEvent::GetCode() const
 	{
 		return m_Code;
 	}
-	const int KeyEvent::GetScancode()
+	int KeyEvent::GetScancode() const
 	{
 		return m_Scancode;
 	}
-	const int KeyEvent::GetAction()
+	int KeyEvent::GetAction() const
 	{
 		return m_Action;
 	}
-	const int KeyEvent::GetMods()
+	int KeyEvent::GetMods() const
 	{
 		return m_Mods;
 	}
 
-	CharacterEvent::CharacterEvent(uint32_t codepoint)
+	CharacterEvent::CharacterEvent(int codepoint)
 		: m_Codepoint(codepoint)
 	{
 	}
 
-	const EventType CharacterEvent::GetType()
-	{
-		return Character;
-	}
-	const int CharacterEvent::GetCodepoint()
+	int CharacterEvent::GetCodepoint() const
 	{
 		return m_Codepoint;
 	}
@@ -47,19 +39,15 @@ namespace Velkro
 	{
 	}
 
-	const EventType MouseButtonEvent::GetType()
-	{
-		return MouseButton;
-	}
-	const int MouseButtonEvent::GetCode()
+	int MouseButtonEvent::GetCode() const
 	{
 		return m_Code;
 	}
-	const int MouseButtonEvent::GetAction()
+	int MouseButtonEvent::GetAction() const
 	{
 		return m_Action;
 	}
-	const int MouseButtonEvent::GetMods()
+	int MouseButtonEvent::GetMods() const
 	{
 		return m_Mods;
 	}
@@ -69,15 +57,11 @@ namespace Velkro
 	{
 	}
 
-	const EventType MouseScrollEvent::GetType()
-	{
-		return MouseScroll;
-	}
-	const double MouseScrollEvent::GetXOffset()
+	double MouseScrollEvent::GetXOffset() const
 	{
 		return m_XOffset;
 	}
-	const double MouseScrollEvent::GetYOffset()
+	double MouseScrollEvent::GetYOffset() const
 	{
 		return m_YOffset;
 	}
@@ -87,15 +71,11 @@ namespace Velkro
 	{
 	}
 
-	const EventType MouseMoveEvent::GetType()
-	{
-		return MouseMove;
-	}
-	const double MouseMoveEvent::GetXPos()
+	double MouseMoveEvent::GetXPos() const
 	{
 		return m_XPos;
 	}
-	const double MouseMoveEvent::GetYPos()
+	double MouseMoveEvent::GetYPos() const
 	{
 		return m_YPos;
 	}
@@ -105,15 +85,11 @@ namespace Velkro
 	{
 	}
 
-	const EventType WindowResizeEvent::GetType()
-	{
-		return WindowResize;
-	}
-	const int WindowResizeEvent::GetWidth()
+	int WindowResizeEvent::GetWidth() const
 	{
 		return m_Width;
 	}
-	const int WindowResizeEvent::GetHeight()
+	int WindowResizeEvent::GetHeight() const
 	{
 		return m_Height;
 	}
@@ -123,15 +99,11 @@ namespace Velkro
 	{
 	}
 
-	const EventType WindowMoveEvent::GetType()
-	{
-		return WindowMove;
-	}
-	const int WindowMoveEvent::GetXPos()
+	int WindowMoveEvent::GetXPos() const
 	{
 		return m_XPos;
 	}
-	const int WindowMoveEvent::GetYPos()
+	int WindowMoveEvent::GetYPos() const
 	{
 		return m_YPos;
 	}
@@ -141,11 +113,7 @@ namespace Velkro
 	{
 	}
 
-	const EventType WindowMaximizeEvent::GetType()
-	{
-		return WindowMaximize;
-	}
-	const int WindowMaximizeEvent::GetMaximized()
+	int WindowMaximizeEvent::GetMaximized() const
 	{
 		return m_Maximized;
 	}
@@ -155,11 +123,7 @@ namespace Velkro
 	{
 	}
 
-	const EventType WindowFocusEvent::GetType()
-	{
-		return WindowFocus;
-	}
-	const int WindowFocusEvent::GetFocused()
+	int WindowFocusEvent::GetFocused() const
 	{
 		return m_Focused;
 	}
@@ -169,11 +133,7 @@ namespace Velkro
 	{
 	}
 
-	const EventType WindowIconifyEvent::GetType()
-	{
-		return WindowIconify;
-	}
-	const int WindowIconifyEvent::GetFocused()
+	int WindowIconifyEvent::GetFocused() const
 	{
 		return m_Iconified;
 	}

@@ -1,1 +1,2 @@
-premake5 --file=VELKRO.lua vs2022
+premake5 vs2022
+PAUSE

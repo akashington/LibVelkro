@@ -1,4 +1,4 @@
-#include <Application.h>
+#include <Velkro/Velkro.h>
 
 #include <iostream>
 #include <chrono>
@@ -7,30 +7,28 @@ namespace Project
 {
 	using namespace Velkro;
 
-	Window window;
+	Velkro::Engine* Engine;
 
-	static void OnEvent(Event* event)
-	{
-		if (event->GetType() == Character)
-		{
-			VLK_INFO(std::string(1, static_cast<CharacterEvent*>(event)->GetCodepoint()));
-		}
-	}
+	Entity* entity;
+	WindowComponent* window;
 
 	ExitCode Entry()
 	{
-		window = Window("Project", 800, 600);
+		entity = new Entity();
 
-		window.SetEventCallback(OnEvent);
+		window = new WindowComponent("Velkro Engine", 800, 600);
+
+		entity->AddComponent(window);
+		entity->AddComponent(new SpriteComponent(window));
+
+		Engine->AddEntity(entity);
 
 		return ExitCode::Success;
 	}
 
 	ExitCode Loop()
-	{		
-		window.Update();
-
-		if (window.WindowClosed())
+	{
+		if (window->GetWindowClosed())
 		{
 			return ExitCode::Exit;
 		}
@@ -40,19 +38,15 @@ namespace Project
 
 	ExitCode Exit()
 	{
-		window.Destroy();
-
-		VLK_INFO("Look! The window closed!");
-
 		return ExitCode::Exit;
 	}	
 }
 
 int main()
 {
-	Velkro::Application* application = new Velkro::Application();	
+	Project::Engine = new Velkro::Engine();	
 
-	application->Initialize(Project::Entry, Project::Loop, Project::Exit);
+	Project::Engine->Run(Project::Entry, Project::Loop, Project::Exit);
 
 	return 0;
 }

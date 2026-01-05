@@ -1,3 +1,9 @@
 [submodule "vendor/glfw"]
 	path = vendor/glfw
 	url = https://github.com/akashington/glfw
+[submodule "vendor/uuid_v4"]
+	path = vendor/uuid_v4
+	url = https://github.com/crashoz/uuid_v4
+[submodule "vendor/glm"]
+	path = vendor/glm
+	url = https://github.com/g-truc/glm

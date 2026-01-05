@@ -1,1 +1,1 @@
-premake5 --file=VELKRO.lua gmake2
+premake5 gmake
