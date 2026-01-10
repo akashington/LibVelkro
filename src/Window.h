@@ -15,7 +15,7 @@ namespace Velkro
 		static void Terminate();
 
 		Window() = default;
-		Window(const char* UUID, const char* ParentUUID, const char* title, int width, int height);
+		Window(const char* UUID, const char* EntityUUID, const char* title, int width, int height);
 		~Window();
 
 		void Update();

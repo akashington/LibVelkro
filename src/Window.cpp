@@ -14,7 +14,7 @@ namespace Velkro
 	static std::unordered_map<GLFWwindow*, std::pair<std::string /* UUID */, std::string /* Parent UUID */>> GLFWWindowMap;
 
 	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
+	{		
 		KeyEvent* keyEvent = new KeyEvent(key, scancode, action, mods);
 
 		OnEvent(keyEvent, GLFWWindowMap[window].first.c_str(), GLFWWindowMap[window].second.c_str());
@@ -92,7 +92,7 @@ namespace Velkro
 		glfwTerminate();
 	}
 
-	Window::Window(const char* UUID, const char* ParentUUID, const char* title, int width, int height)
+	Window::Window(const char* UUID, const char* EntityUUID, const char* title, int width, int height)
 	{
 		m_Window = glfwCreateWindow(width, height, title, NULL, NULL);
 
@@ -109,7 +109,7 @@ namespace Velkro
 		glfwSetWindowFocusCallback(m_Window, WindowFocusCallback);
 		glfwSetWindowIconifyCallback(m_Window, WindowIconifyCallback);
 
-		GLFWWindowMap[m_Window] = std::make_pair(UUID, ParentUUID);
+		GLFWWindowMap[m_Window] = std::make_pair(UUID, EntityUUID);
 	}
 	Window::~Window()
 	{

@@ -1,4 +1,6 @@
 #include "Entity.h"
+#include "Component.h"
+#include "UUID.h"
 #include "Log.h"
 
 #include <map>
@@ -23,7 +25,7 @@ namespace Velkro
 			return m_ComponentsIndex;
 		}
 
-		UUIDv4::UUID& GetUUID()
+		std::string& GetUUID()
 		{
 			return m_UUID;
 		}
@@ -34,10 +36,10 @@ namespace Velkro
 		}
 
 	private:
-		std::map<std::string /* UUID */, Component*> m_Components;
+		std::map<std::string, Component*> m_Components;
 		std::vector<Component*> m_ComponentsIndex; // Sorted by insertion order
 
-		UUIDv4::UUID m_UUID;
+		std::string m_UUID;
 		std::string m_ID;
 
 		static inline int currentIndex = 0;
@@ -47,7 +49,10 @@ namespace Velkro
 	{
 		m_Data = new Data();
 
-		m_Data->GetUUID() = UUID::GenerateUUID();
+		UUID uuid;
+		uuid.GenerateUUID();
+
+		m_Data->GetUUID() = uuid.GetUUIDString();
 		m_Data->GetID() = ID;
 	}
 
@@ -61,19 +66,19 @@ namespace Velkro
 		return m_Data->GetID().c_str();
 	}
 
-	UUIDv4::UUID& Entity::GetUUID()
+	const char* Entity::GetUUID()
 	{
-		return m_Data->GetUUID();
+		return m_Data->GetUUID().c_str();
 	}
 
-	Component* Entity::m_GetComponent(const char* UUID)
+	Component* Entity::m_GetComponent(const char* uuid)
 	{
-		if (auto iterator = m_Data->GetComponents().find(UUID); iterator != m_Data->GetComponents().end())
+		if (auto iterator = m_Data->GetComponents().find(uuid); iterator != m_Data->GetComponents().end())
 		{
 			return iterator->second;
 		}
 
-		VLK_CORE_ERROR("Requested component of UUID \"{}\" does not exist. Returning nullptr.", UUID);
+		VLK_CORE_ERROR("Requested component of UUID \"{}\" does not exist. Returning nullptr.", uuid);
 
 		return nullptr;
 	}
@@ -81,14 +86,14 @@ namespace Velkro
 	void Entity::AddComponent(Component* component)
 	{
 		m_Data->GetComponentsIndex().push_back(component);
-		m_Data->GetComponents()[component->GetUUID().str()] = component;
+		m_Data->GetComponents()[component->GetUUID()] = component;
 	}
 
 	void Entity::OnStart()
 	{
 		for (Component* component : m_Data->GetComponentsIndex())
 		{
-			component->OnStart(GetUUID().str().c_str());
+			component->OnStart(m_Data->GetUUID().c_str());
 		}
 	}
 	void Entity::OnUpdate()

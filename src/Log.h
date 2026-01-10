@@ -2,12 +2,11 @@
 
 #include <print>
 
-#ifdef VLK_DEVELOPMENT
-#undef VLK_DEVELOPMENT
-#define VLK_DEVELOPMENT true
+#ifdef VLK_CONFIG_DEBUG
+#undef VLK_CONFIG_DEBUG
+#define VLK_CONFIG_DEBUG true
 #else
-#undef VLK_DEVELOPMENT
-#define VLK_DEVELOPMENT false
+#define VLK_CONFIG_DEBUG false
 #endif
 
 namespace Velkro::Log
@@ -20,7 +19,7 @@ namespace Velkro::Log
 	template<typename... Args>
 	void Print(bool core, Level level, std::format_string<Args...> fmt, Args... args)
 	{
-		if ((level == DEBUG && VLK_DEVELOPMENT) || level != DEBUG)
+		if ((level == DEBUG && VLK_CONFIG_DEBUG) || level != DEBUG)
 		{
 			switch (level)
 			{

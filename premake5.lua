@@ -1,54 +1,28 @@
--- Premake Project Structure
-workspace "Velkro"
-	configurations { "Development", "Distribution" }
-	language "C++"
-	cppdialect "C++latest"
-	startproject "Project"
-
 include "vendor/glfw"
 include "vendor/glad"
 
-project "Velkro"
+project "LibVelkro"
 	kind "StaticLib"
 
-	location "%{prj.name}"
+	language "C++"
+	cppdialect "C++latest"
+	
+	architecture "x64"
 
 	targetdir "bin/%{prj.name}/%{cfg.architecture}-%{cfg.buildcfg}"
-	objdir "bin-int/%{prj.name}/%{cfg.architecture}-%{cfg.buildcfg}"
-
-	architecture "x64"    
+	objdir "bin-int/%{prj.name}/%{cfg.architecture}-%{cfg.buildcfg}"	
 
 	links { "GLFW", "Glad" }
 
-	files { "%{prj.name}/include/**.h", "%{prj.name}/src/**.h", "%{prj.name}/src/**.cpp" }
+	files { "include/**.h", "src/**.h", "src/**.cpp" }
 
-	includedirs { "%{prj.name}/include", "vendor/glfw/include", "vendor/glad/include", "vendor/uuid_v4", "vendor/glm" }
+	includedirs { "include", "vendor/glfw/include", "vendor/glad/include", "vendor/uuid_v4", "vendor/glm", "vendor/stb" }
 
-	filter "configurations:Development"
-		defines { "VLK_DEVELOPMENT" }
+	configurations { "Debug", "Release" }
+
+	filter "configurations:Debug"
+		defines { "VLK_CONFIG_DEBUG" }
 		symbols "On"
 
-	filter "configurations:Distribution"
-		optimize "On"
-
-project "Project"
-	kind "ConsoleApp"
-
-	location "%{prj.name}"
-
-	targetdir "bin/%{prj.name}/%{cfg.architecture}-%{cfg.buildcfg}"
-	objdir "bin-int/%{prj.name}/%{cfg.architecture}-%{cfg.buildcfg}"
-
-	architecture "x64"
-
-	links { "Velkro" }
-
-	files { "%{prj.name}/src/**.h", "%{prj.name}/src/**.cpp" }
-	
-	includedirs { "Velkro/include", "vendor/glfw/include", "vendor/glad/include", "vendor/uuid_v4", "vendor/glm" }
-
-	filter "configurations:Development"
-		symbols "On"
-
-	filter "configurations:Distribution"
+	filter "configurations:Release"
 		optimize "On"

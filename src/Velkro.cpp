@@ -3,8 +3,8 @@
 #include <Velkro/Velkro.h>
 
 #include "Window.h"
-#include "Event.h"
 #include "Log.h"
+#include "UUID.h"
 
 namespace Velkro
 {
@@ -32,12 +32,14 @@ namespace Velkro
 		}
 
 	private:
-		std::unordered_map<std::string /* UUID */, Entity*> m_Entities;
+		std::unordered_map<std::string, Entity*> m_Entities;
 	};
 
-	void Engine::Run(OnEnterFunction onEnterFunction, OnUpdateFunction onUpdateFunction, OnExitFunction onExitFunction)
+	void Engine::Run(OnEnterFunction onEnterFunction, OnUpdateFunction onUpdateFunction, OnExitFunction onExitFunction, OnEventFunctionEngine onEventFunction)
 	{
 		m_Data = new Data();
+
+		m_OnEventFunction = onEventFunction;
 
 		Window::Initialize();
 
@@ -100,7 +102,7 @@ namespace Velkro
 		}
 		else if (exitCode == Exit || exitCode == Success)
 		{
-			VLK_CORE_DEBUG("Exiting program on exit.");
+			VLK_CORE_DEBUG("Exiting program.");
 		}
 
 		for (std::pair<std::string, Entity*> entity : m_Data->GetEntities())
@@ -119,12 +121,31 @@ namespace Velkro
 
 	void Engine::AddEntity(Entity* entity)
 	{
-		m_Data->GetEntities()[entity->GetUUID().str().c_str()] = entity;
+		m_Data->GetEntities()[entity->GetUUID()] = entity;
 	}
 
 	void Engine::OnEvent(Event* event, const char* windowComponentUUID, const char* entityUUID)
 	{
 		WindowComponent* windowComponent = m_Data->GetEntity(entityUUID)->GetComponent<WindowComponent>(windowComponentUUID);
+
+		ExitCode exitCode = m_OnEventFunction(event, windowComponent);
+
+		if (exitCode == Error)
+		{
+			VLK_CORE_FATAL("Error in event. Exiting program.");
+
+			delete event;
+
+			exit(exitCode);
+		}
+		else if (exitCode == Exit)
+		{
+			VLK_CORE_DEBUG("Exiting program.");
+
+			delete event;
+
+			exit(0);
+		}
 
 		for (std::pair<std::string, Entity*> entity : m_Data->GetEntities())
 		{
