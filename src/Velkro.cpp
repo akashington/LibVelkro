@@ -45,6 +45,8 @@ namespace Velkro
 
 		Window::SetEventFunction(OnEvent);
 
+		VLK_CORE_DEBUG("Entering program.");
+
 		int entryExitCode = onEnterFunction();
 
 		if (entryExitCode == Error)
@@ -58,14 +60,7 @@ namespace Velkro
 			VLK_CORE_DEBUG("Exiting program on enter.");
 
 			exit(0);
-		}
-		
-		VLK_CORE_DEBUG("Entering program.");
-
-		for (std::pair<std::string, Entity*> entity : m_Data->GetEntities())
-		{
-			entity.second->OnStart();
-		}
+		}		
 
 		while (m_Running)
 		{

@@ -89,13 +89,6 @@ namespace Velkro
 		m_Data->GetComponents()[component->GetUUID()] = component;
 	}
 
-	void Entity::OnStart()
-	{
-		for (Component* component : m_Data->GetComponentsIndex())
-		{
-			component->OnStart(m_Data->GetUUID().c_str());
-		}
-	}
 	void Entity::OnUpdate()
 	{
 		for (Component* component : m_Data->GetComponentsIndex())

@@ -8,5 +8,5 @@ namespace Velkro::Renderer
 
 	uint32_t LoadShaderFromFile(const char* vertexShaderFilePath, const char* fragShaderFilePath);
 
-	uint32_t LoadTexture(const char* path);
+	uint32_t LoadTexture2D(const char* path, int& width, int& height, int& channels, bool linear);
 }

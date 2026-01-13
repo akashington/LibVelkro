@@ -30,7 +30,6 @@ namespace Velkro
 
 		void AddComponent(Component* component);
 
-		void OnStart();
 		void OnUpdate();
 		void OnEvent(Event* event, WindowComponent* windowComponent);
 		void OnExit();

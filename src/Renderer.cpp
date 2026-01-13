@@ -14,8 +14,6 @@ namespace Velkro::Renderer
 		{
 			VLK_CORE_FATAL("Renderer failed to initialize.");
 		}
-
-		VLK_CORE_INFO("Renderer initialized!");
 	}
 
 	uint32_t LoadShaderFromFile(const char* vertexShaderFilePath, const char* fragShaderFilePath)
@@ -87,13 +85,11 @@ namespace Velkro::Renderer
 		return shaderProgram;
 	}
 
-	uint32_t LoadTexture(const char* path)
+	uint32_t LoadTexture2D(const char* path, int& width, int& height, int& channels, bool linear)
 	{
-		int width, height, bits;
-
 		stbi_set_flip_vertically_on_load(true);
 		
-		uint8_t* pixels = stbi_load(path, &width, &height, &bits, STBI_rgb_alpha);
+		uint8_t* pixels = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
 		
 		if (!pixels)
 		{
@@ -107,8 +103,8 @@ namespace Velkro::Renderer
 		glCreateTextures(GL_TEXTURE_2D, 1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
