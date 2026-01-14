@@ -1,6 +1,8 @@
 #pragma once
 
-#include <print>
+#include <format>
+#include <iostream>
+#include <string>
 
 #ifdef VLK_CONFIG_DEBUG
 #undef VLK_CONFIG_DEBUG
@@ -24,23 +26,23 @@ namespace Velkro::Log
 			switch (level)
 			{
 			case DEBUG:
-				std::print("[\x1b[36mdebug\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
+				std::cout << std::format("[\x1b[36mdebug\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
 				break;
 			case INFO:
-				std::print("[\x1b[32minfo\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
+				std::cout << std::format("[\x1b[32minfo\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
 				break;
 			case WARN:
-				std::print("[\x1b[33mwarn\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
+				std::cout << std::format("[\x1b[33mwarn\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
 				break;
 			case ERROR:
-				std::print("[\x1b[31merror\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
+				std::cout << std::format("[\x1b[31merror\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
 				break;
 			case FATAL:
-				std::print("[\x1b[41mfatal\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
+				std::cout << std::format("[\x1b[41mfatal\033[0m] {}", (core) ? "CORE: " : "CLIENT: ");
 				break;
 			}
 
-			std::println(fmt, std::forward<Args>(args)...);
+			std::cout << std::format(fmt, std::forward<Args>(args)...) << '\n';
 		}
 	}
 }

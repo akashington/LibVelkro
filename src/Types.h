@@ -12,4 +12,6 @@ namespace Velkro
 
 	using intmax_t = long long;
 	using uintmax_t = unsigned long long;
+
+	using size_t = uintmax_t;
 }

@@ -3,6 +3,7 @@
 #include "UUID.h"
 #include "Log.h"
 
+#include <vector>
 #include <map>
 #include <unordered_map>
 #include <string>

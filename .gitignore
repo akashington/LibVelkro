@@ -1,7 +1,9 @@
 .vs/
 bin/
 bin-int/
+Makefile
 *.sln
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+*.make
