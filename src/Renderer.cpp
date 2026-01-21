@@ -14,6 +14,12 @@ namespace Velkro::Renderer
 		{
 			VLK_CORE_FATAL("Renderer failed to initialize.");
 		}
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	uint32_t LoadShaderFromFile(const char* vertexShaderFilePath, const char* fragShaderFilePath)
@@ -114,5 +120,15 @@ namespace Velkro::Renderer
 		stbi_image_free(pixels);
 
 		return textureID;
+	}
+
+	void ClearBuffer()
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	void UpdateViewport(int x, int y, int width, int height)
+	{
+		glViewport(x, y, width, height);
 	}
 }

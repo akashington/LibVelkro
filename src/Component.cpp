@@ -54,6 +54,8 @@ namespace Velkro
 	void WindowComponent::OnUpdate()
 	{
 		m_Window->Update();
+
+		Renderer::ClearBuffer();
 	}
 	void WindowComponent::OnExit()
 	{
@@ -443,8 +445,6 @@ namespace Velkro
 		std::string m_UUID;
 	};
 
-	uint32_t texture;
-
 	RenderComponent::RenderComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, Texture2DComponent* texture)
 		: m_WindowComponent(windowComponent), m_ShaderComponent(shaderComponent), m_TextureComponent(texture)
 	{
@@ -458,31 +458,39 @@ namespace Velkro
 
 		m_WindowComponent->GetWindowSize(m_Width, m_Height);
 
-		glGenBuffers(1, &m_VBO);
-		glGenBuffers(1, &m_EBO);
-		glGenVertexArrays(1, &m_VAO);
-		glBindVertexArray(m_VAO);
+		if (!m_Initialized)
+		{
+			glGenBuffers(1, &m_VBO);
+			glGenBuffers(1, &m_EBO);
+			glGenVertexArrays(1, &m_VAO);
+			glBindVertexArray(m_VAO);
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, m_Data->GetVertices().size() * sizeof(Vertex), m_Data->GetVertices().data(), GL_DYNAMIC_DRAW);
+			const int maxVertices = 1024;
+			const int maxIndices = 1024;
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_Data->GetIndices().size() * sizeof(Index), m_Data->GetIndices().data(), GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+			glBufferData(GL_ARRAY_BUFFER, maxVertices * sizeof(Vertex), m_Data->GetVertices().data(), GL_DYNAMIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		glEnableVertexAttribArray(0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxIndices * sizeof(Index), m_Data->GetIndices().data(), GL_DYNAMIC_DRAW);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+			glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(float)));
-		glEnableVertexAttribArray(2);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
 
-		m_ShaderComponent->Bind();
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(float)));
+			glEnableVertexAttribArray(2);
+		}
+
+		m_Initialized = true;
 	}
 
-	void RenderComponent::AddData(Vertex* vertices, size_t verticesCount, Index* indices, size_t indicesCount)
+	size_t RenderComponent::AddData(Vertex* vertices, size_t verticesCount, Index* indices, size_t indicesCount)
 	{
+		size_t index = m_Data->GetVertices().size();
+
 		m_Data->GetVertices().reserve(m_Data->GetVertices().size() + verticesCount);
 		m_Data->GetIndices().reserve(m_Data->GetIndices().size() + indicesCount);
 
@@ -498,18 +506,32 @@ namespace Velkro
 		m_Data->GetVertices().insert(m_Data->GetVertices().end(), vertices, vertices + verticesCount);
 		m_Data->GetIndices().insert(m_Data->GetIndices().end(), indices, indices + indicesCount);
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, m_Data->GetVertices().size() * sizeof(Vertex), m_Data->GetVertices().data(), GL_DYNAMIC_DRAW);
+		return index;
+	}
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_Data->GetIndices().size() * sizeof(Index), m_Data->GetIndices().data(), GL_DYNAMIC_DRAW);
+	void RenderComponent::EditVertexData(size_t startIndex, Vertex* newVertices, size_t newVertexCount)
+	{
+		if (startIndex + newVertexCount > m_Data->GetVertices().size())
+		{
+			m_Data->GetVertices().resize(startIndex + newVertexCount);
+		}
+
+		for (size_t i = 0; i < newVertexCount; ++i)
+		{
+			m_Data->GetVertices()[startIndex + i] = newVertices[i];
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+		glBufferSubData(GL_ARRAY_BUFFER, startIndex * sizeof(Vertex), newVertexCount * sizeof(Vertex), newVertices);
 	}
 
 	void RenderComponent::OnUpdate()
 	{
-		glViewport(0, 0, m_Width, m_Height);
+		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_Data->GetVertices().size() * sizeof(Vertex), m_Data->GetVertices().data());		
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_Data->GetIndices().size() * sizeof(Index), m_Data->GetIndices().data());
 
 		m_ShaderComponent->Bind();
 
@@ -520,10 +542,16 @@ namespace Velkro
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glUseProgram(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	void RenderComponent::OnEvent(Event* event, WindowComponent* windowComponent)
 	{
-		return;
+		if (WindowResizeEvent* resizeEvent = event->Get<WindowResizeEvent>())
+		{
+			Renderer::UpdateViewport(0, 0, resizeEvent->GetWidth(), resizeEvent->GetHeight());
+		}
 	}
 	void RenderComponent::OnExit()
 	{
@@ -554,8 +582,8 @@ namespace Velkro
 		std::string m_UUID;
 	};
 
-	SpriteComponent::SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, Texture2DComponent* textureComponent, vec3 colour, float width, float height, float x, float y)
-		: m_Width(width), m_Height(height), m_X(x), m_Y(y)
+	SpriteComponent::SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, Texture2DComponent* textureComponent, vec3 colour, float width, float height, float x, float y, float z)
+		: m_Width(width), m_Height(height), m_X(x), m_Y(y), m_Z(z)
 	{
 		m_Data = new Data();
 
@@ -584,8 +612,8 @@ namespace Velkro
 		m_RenderComponent->AddData(vertices.data(), vertices.size(), indices.data(), indices.size());
 	}
 
-	SpriteComponent::SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, TextureAtlasComponent* textureAtlasComponent, int textureID, vec3 colour, float width, float height, float x, float y)
-		: m_Width(width), m_Height(height), m_X(x), m_Y(y)
+	SpriteComponent::SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, TextureAtlasComponent* textureAtlasComponent, int textureID, vec3 colour, float width, float height, float x, float y, float z)
+		: m_TextureAtlasComponent(textureAtlasComponent), m_Width(width), m_Height(height), m_X(x), m_Y(y), m_Z(z), m_Colour(colour)
 	{
 		m_Data = new Data();
 
@@ -597,22 +625,16 @@ namespace Velkro
 
 		m_RenderComponent = new RenderComponent(windowComponent, shaderComponent, textureAtlasComponent->GetTexture());
 
-		float UV[8] =
-		{
-			0.0f, 0.0f,
-			0.0f, 0.0f,
-			0.0f, 0.0f,
-			0.0f, 0.0f
-		};
-		
-		textureAtlasComponent->GetUV(textureID, UV);
+		m_UV = new float[8];
+
+		m_TextureAtlasComponent->GetUV(textureID, m_UV);
 
 		std::vector<RenderComponent::Vertex> vertices =
 		{
-			{ RenderComponent::Vertex( 1.0f,  1.0f, 0.0f, colour.x, colour.y, colour.z, UV[0], UV[1]) }, // top right
-			{ RenderComponent::Vertex( 1.0f, -1.0f, 0.0f, colour.x, colour.y, colour.z, UV[2], UV[3]) }, // bottom right
-			{ RenderComponent::Vertex(-1.0f, -1.0f, 0.0f, colour.x, colour.y, colour.z, UV[4], UV[5]) }, // bottom left
-			{ RenderComponent::Vertex(-1.0f,  1.0f, 0.0f, colour.x, colour.y, colour.z, UV[6], UV[7]) }  // top left
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
 		};
 
 		std::vector<RenderComponent::Index> indices =
@@ -621,7 +643,124 @@ namespace Velkro
 			{ RenderComponent::Index(1, 2, 3) }
 		};
 
-		m_RenderComponent->AddData(vertices.data(), vertices.size(), indices.data(), indices.size());
+		m_VerticesIndex = m_RenderComponent->AddData(vertices.data(), vertices.size(), indices.data(), indices.size());
+	}
+
+	void SpriteComponent::TransformSprite(float width, float height, float x, float y, float z, vec3 colour, int textureID)
+	{
+		m_Width = width;
+		m_Height = height;
+		m_X = x;
+		m_Y = y;
+		m_Z = z;
+		m_Colour = colour;
+
+		m_TextureAtlasComponent->GetUV(textureID, m_UV);
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
+	}
+	void SpriteComponent::TransformSprite(float width, float height, float x, float y, float z, vec3 colour)
+	{
+		m_Width = width;
+		m_Height = height;
+		m_X = x;
+		m_Y = y;
+		m_Z = z;
+		m_Colour = colour;
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
+	}
+	void SpriteComponent::TransformSprite(float width, float height, float x, float y, float z)
+	{
+		m_Width = width;
+		m_Height = height;
+		m_X = x;
+		m_Y = y;
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
+	}
+	void SpriteComponent::SetSpriteSize(float width, float height)
+	{
+		m_Width = width;
+		m_Height = height;
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
+	}
+	void SpriteComponent::SetSpritePos(float x, float y, float z)
+	{
+		m_X = x;
+		m_Y = y;
+		m_Z = z;
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
+	}
+	void SpriteComponent::SetSpriteColour(vec3 colour)
+	{
+		m_Colour = colour;
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
+	}
+	void SpriteComponent::SetSpriteTextureID(int textureID)
+	{
+		m_TextureAtlasComponent->GetUV(textureID, m_UV);
+
+		std::vector<RenderComponent::Vertex> vertices =
+		{
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[0], m_UV[1]) }, // top right
+			{ RenderComponent::Vertex(m_X + ( m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[2], m_UV[3]) }, // bottom right
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + (-m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[4], m_UV[5]) }, // bottom left
+			{ RenderComponent::Vertex(m_X + (-m_Width / 2), m_Y + ( m_Height / 2), m_Z, m_Colour.x, m_Colour.y, m_Colour.z, m_UV[6], m_UV[7]) }  // top left
+		};
+
+		m_RenderComponent->EditVertexData(m_VerticesIndex, vertices.data(), vertices.size());
 	}
 
 	void SpriteComponent::OnUpdate()

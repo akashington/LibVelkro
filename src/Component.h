@@ -183,8 +183,9 @@ namespace Velkro
 
 		RenderComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, Texture2DComponent* texture);
 
-		void AddData(Vertex* vertices, size_t verticesCount, Index* indices, size_t indicesCount);
-		
+		size_t AddData(Vertex* vertices, size_t verticesCount, Index* indices, size_t indicesCount);
+		void EditVertexData(size_t startIndex, Vertex* newVertices, size_t newVertexCount);
+
 		void OnUpdate() override;
 		void OnEvent(Event* event, WindowComponent* windowComponent) override;
 		void OnExit() override;		
@@ -201,6 +202,8 @@ namespace Velkro
 
 		int m_Width, m_Height;
 
+		static inline bool m_Initialized = false;
+
 		static inline uint32_t m_EBO = 0;
 		static inline uint32_t m_VBO = 0;
 		static inline uint32_t m_VAO = 0;
@@ -215,8 +218,16 @@ namespace Velkro
 	class SpriteComponent : public Component
 	{
 	public:
-		SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, Texture2DComponent* textureComponent, vec3 colour, float width, float height, float x, float y);
-		SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, TextureAtlasComponent* textureAtlasComponent, int textureID, vec3 colour, float width, float height, float x, float y);
+		SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, Texture2DComponent* textureComponent, vec3 colour, float width, float height, float x, float y, float z);
+		SpriteComponent(WindowComponent* windowComponent, ShaderComponent* shaderComponent, TextureAtlasComponent* textureAtlasComponent, int textureID, vec3 colour, float width, float height, float x, float y, float z);
+
+		void TransformSprite(float width, float height, float x, float y, float z, vec3 colour, int textureID);
+		void TransformSprite(float width, float height, float x, float y, float z, vec3 colour);
+		void TransformSprite(float width, float height, float x, float y, float z);
+		void SetSpriteSize(float width, float height);
+		void SetSpritePos(float x, float y, float z);
+		void SetSpriteColour(vec3 colour);
+		void SetSpriteTextureID(int textureID);
 
 		void OnUpdate() override;
 		void OnEvent(Event* event, WindowComponent* windowComponent) override;
@@ -226,12 +237,18 @@ namespace Velkro
 
 	private:
 		RenderComponent* m_RenderComponent;
+		TextureAtlasComponent* m_TextureAtlasComponent;
+
+		size_t m_VerticesIndex = 0;
 
 		bool m_UsingAtlas = false;
 
 		float m_Width, m_Height;
-		float m_X, m_Y;
-				
+		float m_X, m_Y, m_Z;
+		vec3 m_Colour = vec3(1.0f, 1.0f, 1.0f);
+		
+		float* m_UV;
+
 		class Data;
 		Data* m_Data;
 	};
